@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Google Maps Bottom Sheet Demo</string>
+
+    <string name="unknown_street_address">Unknown Street Address</string>
+</resources>
