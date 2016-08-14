@@ -22,6 +22,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -65,6 +66,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Check for permissions for API 23 (Marshmallow)
+        getPermissionAccessFineLocation();
+
         mAddressTextView = (TextView)findViewById(R.id.address_textview);
         mCityTextView = (TextView)findViewById(R.id.city_textview);
 
@@ -73,8 +77,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        //Check for permissions for API 23 (Marshmallow)
-        getPermissionAccessFineLocation();
+
+        // Retrieve the PlaceAutocompleteFragment.
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+        // Register a listener to receive callbacks when a place has been selected or an error has
+        // occurred.
+        autocompleteFragment.setOnPlaceSelectedListener(this);
 
         //Build Google API Client
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -111,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
 
         mGoogleMap = googleMap;
+        mGoogleMap.setMyLocationEnabled(true);
 
         //Remove the default "zoom to current location" button
         View mapView = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getView();
@@ -139,7 +150,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
             } else {
 
-                mGoogleMap.setMyLocationEnabled(true);
                 handleNewLocation(location);
             }
         }
@@ -162,6 +172,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onPlaceSelected(Place place) {
+
+        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(),
+                16));
+
+        Log.e(TAG,"Place = " + place.getName() + " location = " + place.getLatLng().toString());
+        updateLocation(place.getLatLng());
 
     }
 
